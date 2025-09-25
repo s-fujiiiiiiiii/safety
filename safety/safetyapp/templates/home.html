@@ -6,9 +6,17 @@
 </head>
 <div id="header">
     <a href="notification.html">通知</a>
-    <a href="signup.html">新規作成</a>
-    <a href="login.html">ログイン</a>
-    <a href="logout.html">ログアウト</a>
+    
+    {% if user.is_authenticated %}
+        <span>{{ user.username }} さん、ログイン中</span>
+        {% if user.family_leader_flag %}
+            <span>（家族代表者）</span>
+        {% endif %}
+        <a href="{% url 'logout' %}">ログアウト</a>
+    {% else %}
+        <a href="{% url 'signup' %}">新規作成</a>
+        <a href="{% url 'login' %}">ログイン</a>
+    {% endif %}
 </div>
 
 <div id="main">
