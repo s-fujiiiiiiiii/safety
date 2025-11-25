@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'safetyapp.apps.SafetyappConfig',
     'accounts',
-    
+    'rest_framework',
+    'sns_analyzer',
 ]
 
 MIDDLEWARE = [
