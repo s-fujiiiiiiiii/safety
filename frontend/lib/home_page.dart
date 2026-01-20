@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'group_list_page.dart';
 import 'group_join_page.dart';
+import 'group_create_page.dart';
 
 class HomePage extends StatelessWidget {
   final int userId;
@@ -21,6 +22,7 @@ class HomePage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
+              // ログアウト → スタート画面へ
               Navigator.popUntil(context, (route) => route.isFirst);
             },
           ),
@@ -30,18 +32,43 @@ class HomePage extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            if (isLeader)
+
+            // =========================
+            // グループリーダー専用
+            // =========================
+            if (isLeader) ...[
               ElevatedButton(
-                child: const Text("自分のグループ一覧"),
+                child: const Text("グループ作成"),
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => GroupListPage(userId: userId),
+                      builder: (_) => GroupCreatePage(userId: userId),
                     ),
                   );
                 },
               ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                child: const Text("グループ一覧"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GroupListPage(
+                        userId: userId,
+                        isLeader: isLeader, // ← 忘れず渡す
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // =========================
+            // 全ユーザー共通
+            // =========================
             ElevatedButton(
               child: const Text("グループ参加"),
               onPressed: () {

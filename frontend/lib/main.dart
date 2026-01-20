@@ -24,7 +24,7 @@ class StartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("ようこそ")),
+      appBar: AppBar(title: const Text("スタート")),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
