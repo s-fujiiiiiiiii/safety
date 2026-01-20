@@ -1,0 +1,11 @@
+[
+  {
+    "shelter_name": "〇〇避難所",
+    "location": "福岡市中央区",
+    "lat": 33.5902,
+    "lng": 130.4017,
+    "capacity": 300,
+    "congestion_status": "混雑",
+    "confidence": 0.9
+  }
+]

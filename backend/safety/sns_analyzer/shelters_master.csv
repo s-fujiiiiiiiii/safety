@@ -1,0 +1,4 @@
+shelter_name,location,lat,lng,capacity,water,toilet,power
+〇〇避難所,福岡市中央区,33.5902,130.4017,300,yes,yes,no
+〇〇小学校避難所,福岡市博多区,33.5905,130.4201,500,yes,yes,yes
+△△公民館,福岡市西区,33.5850,130.3300,150,no,yes,no

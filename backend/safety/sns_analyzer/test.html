@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>避難所マップ</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
+  <style>
+    #map { height: 600px; }
+  </style>
+</head>
+<body>
+
+<h2>避難所 混雑状況マップ</h2>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  // 地図初期化（福岡中心）
+  const map = L.map('map').setView([33.5902, 130.4017], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  // APIからデータ取得
+  fetch('/api/shelters/status/')
+    .then(res => res.json())
+    .then(data => {
+      data.forEach(shelter => {
+
+        // 混雑度で色分け
+        let color = 'blue';
+        if (shelter.congestion_status === '混雑') color = 'red';
+        if (shelter.congestion_status === '空いている') color = 'green';
+
+        const marker = L.circleMarker(
+          [shelter.lat, shelter.lng],
+          {
+            radius: 10,
+            color: color,
+            fillOpacity: 0.8
+          }
+        ).addTo(map);
+
+        marker.bindPopup(`
+          <strong>${shelter.shelter_name}</strong><br>
+          混雑状況：${shelter.congestion_status}<br>
+          収容人数：${shelter.capacity}<br>
+          信頼度：${Math.round(shelter.confidence * 100)}%
+        `);
+      });
+    });
+</script>
+
+</body>
+</html>
