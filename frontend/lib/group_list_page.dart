@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'group_member_list_page.dart';
 import 'group_create_page.dart';
 
 class GroupListPage extends StatefulWidget {
   final int userId;
-  const GroupListPage({super.key, required this.userId});
+  final bool isLeader;
+
+  const GroupListPage({
+    super.key,
+    required this.userId,
+    required this.isLeader,
+  });
 
   @override
   State<GroupListPage> createState() => _GroupListPageState();
@@ -38,25 +45,42 @@ class _GroupListPageState extends State<GroupListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("グループ一覧")),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => GroupCreatePage(userId: widget.userId),
-            ),
-          );
-        },
-      ),
+      floatingActionButton: widget.isLeader
+          ? FloatingActionButton(
+              child: const Icon(Icons.add),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => GroupCreatePage(userId: widget.userId),
+                  ),
+                );
+              },
+            )
+          : null,
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: groups.length,
-              itemBuilder: (_, i) {
+              itemBuilder: (context, i) {
+                final g = groups[i];
                 return ListTile(
-                  title: Text(groups[i]["name"]),
-                  subtitle: Text("招待コード: ${groups[i]["invite_code"]}"),
+                  title: Text(g["name"]),
+                  subtitle: Text("招待コード: ${g["invite_code"]}"),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => GroupMemberListPage(
+                          groupId: g["id"],
+                          groupName: g["name"],
+                          loginUserId: widget.userId,
+                          isLeader: widget.isLeader,
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
