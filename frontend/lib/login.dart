@@ -45,17 +45,97 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("ログイン")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: "名前")),
-            TextField(controller: passCtrl, decoration: const InputDecoration(labelText: "パスワード"), obscureText: true),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: login, child: const Text("ログイン")),
-            Text(message, style: const TextStyle(color: Colors.red)),
-          ],
+      backgroundColor: const Color(0xFFF1F8F4),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF4CAF50),
+        centerTitle: true,
+        title: const Text(
+          "ログイン",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.lock_outline,
+                  size: 80,
+                  color: Color(0xFF2E7D32),
+                ),
+                const SizedBox(height: 30),
+
+                // 名前
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                    labelText: "名前",
+                    prefixIcon: const Icon(Icons.person_outline),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // パスワード
+                TextField(
+                  controller: passCtrl,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: "パスワード",
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // ログインボタン
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: login,
+                    child: const Text(
+                      "ログイン",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // エラーメッセージ
+                if (message.isNotEmpty)
+                  Text(
+                    message,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
