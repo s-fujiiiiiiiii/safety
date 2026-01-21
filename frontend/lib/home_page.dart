@@ -3,7 +3,8 @@ import 'group_list_page.dart';
 import 'group_join_page.dart';
 import 'map_screen.dart';
 
-import 'grogup_create_page.dart';
+import 'group_create_page.dart';
+
 
 class HomePage extends StatelessWidget {
   final int userId;
