@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'group_list_page.dart';
 import 'group_join_page.dart';
+import 'map_screen.dart';
+
 
 class HomePage extends StatelessWidget {
   final int userId;
@@ -49,6 +51,19 @@ class HomePage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => GroupJoinPage(userId: userId),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+
+            ElevatedButton(
+              child: const Text("避難所マップを見る"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const MapScreen(),
                   ),
                 );
               },
