@@ -30,15 +30,81 @@ class _GroupCreatePageState extends State<GroupCreatePage> {
 
   @override
   Widget build(BuildContext context) {
+    final mainGreen = Colors.green.shade700;
+
     return Scaffold(
-      appBar: AppBar(title: const Text("グループ作成")),
+      appBar: AppBar(
+        title: const Text("グループ作成"),
+        backgroundColor: mainGreen,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(controller: ctrl, decoration: const InputDecoration(labelText: "グループ名")),
-            ElevatedButton(onPressed: createGroup, child: const Text("作成")),
-            Text(message),
+            const SizedBox(height: 20),
+
+            // タイトル
+            Text(
+              "新しいグループを作成",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: mainGreen,
+              ),
+              textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 30),
+
+            // グループ名入力
+            TextField(
+              controller: ctrl,
+              decoration: InputDecoration(
+                labelText: "グループ名",
+                prefixIcon: const Icon(Icons.group),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: mainGreen, width: 2),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            // 作成ボタン
+            ElevatedButton(
+              onPressed: createGroup,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: mainGreen,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                "グループを作成",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // メッセージ表示
+            if (message.isNotEmpty)
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: message.contains("成功")
+                      ? Colors.green
+                      : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
           ],
         ),
       ),

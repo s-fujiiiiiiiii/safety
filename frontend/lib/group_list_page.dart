@@ -30,7 +30,9 @@ class _GroupListPageState extends State<GroupListPage> {
 
   Future<void> fetchGroups() async {
     final res = await http.get(
-      Uri.parse("http://10.251.197.125:8000/api/group_list/?user_id=${widget.userId}"),
+      Uri.parse(
+        "http://10.251.197.125:8000/api/group_list/?user_id=${widget.userId}",
+      ),
     );
 
     if (res.statusCode == 200) {
@@ -43,10 +45,18 @@ class _GroupListPageState extends State<GroupListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final mainGreen = Colors.green.shade700;
+
     return Scaffold(
-      appBar: AppBar(title: const Text("グループ一覧")),
+      appBar: AppBar(
+        title: const Text("グループ一覧"),
+        backgroundColor: mainGreen,
+      ),
+
+      // リーダーのみ表示
       floatingActionButton: widget.isLeader
           ? FloatingActionButton(
+              backgroundColor: mainGreen,
               child: const Icon(Icons.add),
               onPressed: () {
                 Navigator.push(
@@ -58,32 +68,60 @@ class _GroupListPageState extends State<GroupListPage> {
               },
             )
           : null,
+
       body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: groups.length,
-              itemBuilder: (context, i) {
-                final g = groups[i];
-                return ListTile(
-                  title: Text(g["name"]),
-                  subtitle: Text("招待コード: ${g["invite_code"]}"),
-                  trailing: const Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => GroupMemberListPage(
-                          groupId: g["id"],
-                          groupName: g["name"],
-                          loginUserId: widget.userId,
-                          isLeader: widget.isLeader,
+          ? Center(
+              child: CircularProgressIndicator(color: mainGreen),
+            )
+          : groups.isEmpty
+              ? const Center(
+                  child: Text(
+                    "グループがありません",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: groups.length,
+                  itemBuilder: (context, i) {
+                    final g = groups[i];
+
+                    return Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: mainGreen,
+                          child: const Icon(Icons.group, color: Colors.white),
                         ),
+                        title: Text(
+                          g["name"],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text("招待コード: ${g["invite_code"]}"),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => GroupMemberListPage(
+                                groupId: g["id"],
+                                groupName: g["name"],
+                                loginUserId: widget.userId,
+                                isLeader: widget.isLeader,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     );
                   },
-                );
-              },
-            ),
+                ),
     );
   }
 }

@@ -30,15 +30,69 @@ class _GroupJoinPageState extends State<GroupJoinPage> {
 
   @override
   Widget build(BuildContext context) {
+    final mainGreen = Colors.green.shade700;
+
     return Scaffold(
-      appBar: AppBar(title: const Text("グループ参加")),
+      appBar: AppBar(
+        title: const Text("グループ参加"),
+        backgroundColor: mainGreen,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(controller: ctrl, decoration: const InputDecoration(labelText: "招待コード")),
-            ElevatedButton(onPressed: joinGroup, child: const Text("参加")),
-            Text(message),
+            const SizedBox(height: 30),
+
+            const Icon(
+              Icons.group_add,
+              size: 80,
+              color: Colors.green,
+            ),
+
+            const SizedBox(height: 30),
+
+            TextField(
+              controller: ctrl,
+              decoration: InputDecoration(
+                labelText: "招待コード",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                prefixIcon: const Icon(Icons.vpn_key),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            ElevatedButton(
+              onPressed: joinGroup,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: mainGreen,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                "参加する",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            if (message.isNotEmpty)
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: message.contains("成功")
+                      ? Colors.green
+                      : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
           ],
         ),
       ),
