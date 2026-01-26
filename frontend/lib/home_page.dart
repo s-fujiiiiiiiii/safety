@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'group_list_page.dart';
 import 'group_join_page.dart';
 import 'map_screen.dart';
-
 import 'group_create_page.dart';
-
 
 class HomePage extends StatelessWidget {
   final int userId;
@@ -18,14 +16,19 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const mainGreen = Color(0xFF2E7D32);
+    const lightGreen = Color(0xFFE8F5E9);
+
     return Scaffold(
+      backgroundColor: lightGreen,
       appBar: AppBar(
         title: const Text("ホーム"),
+        backgroundColor: mainGreen,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              // ログアウト → スタート画面へ
               Navigator.popUntil(context, (route) => route.isFirst);
             },
           ),
@@ -34,14 +37,11 @@ class HomePage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-
-            // =========================
-            // グループリーダー専用
-            // =========================
             if (isLeader) ...[
-              ElevatedButton(
-                child: const Text("グループ作成"),
+              _greenButton(
+                text: "グループ作成",
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -52,28 +52,24 @@ class HomePage extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 12),
-              ElevatedButton(
-                child: const Text("グループ一覧"),
+              _greenButton(
+                text: "グループ一覧",
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => GroupListPage(
                         userId: userId,
-                        isLeader: isLeader, // ← 忘れず渡す
+                        isLeader: isLeader,
                       ),
                     ),
                   );
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
             ],
-
-            // =========================
-            // 全ユーザー共通
-            // =========================
-            ElevatedButton(
-              child: const Text("グループ参加"),
+            _greenButton(
+              text: "グループ参加",
               onPressed: () {
                 Navigator.push(
                   context,
@@ -84,9 +80,9 @@ class HomePage extends StatelessWidget {
               },
             ),
             const SizedBox(height: 20),
-
-            ElevatedButton(
-              child: const Text("避難所マップを見る"),
+            _greenButton(
+              text: "避難所マップを見る",
+              icon: Icons.map,
               onPressed: () {
                 Navigator.push(
                   context,
@@ -98,6 +94,33 @@ class HomePage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _greenButton({
+    required String text,
+    required VoidCallback onPressed,
+    IconData? icon,
+  }) {
+    return ElevatedButton.icon(
+      icon: icon != null ? Icon(icon, color: Colors.white) : const SizedBox(),
+      label: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF2E7D32),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 2,
       ),
     );
   }
