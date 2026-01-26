@@ -15,30 +15,45 @@ class _LoginPageState extends State<LoginPage> {
   final passCtrl = TextEditingController();
   String message = "";
 
+  @override
+  void dispose() {
+    nameCtrl.dispose();
+    passCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> login() async {
-    final res = await http.post(
-      Uri.parse("http://10.251.197.125:8000/api/login/"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "name": nameCtrl.text,
-        "password": passCtrl.text,
-      }),
-    );
-
-    final data = jsonDecode(res.body);
-
-    if (res.statusCode == 200) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => HomePage(
-            userId: data["user_id"],
-            isLeader: data["is_group_leader"],
-          ),
-        ),
+    try {
+      final res = await http.post(
+        Uri.parse("http://10.251.197.125:8000/api/login/"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "name": nameCtrl.text,
+          "password": passCtrl.text,
+        }),
       );
-    } else {
-      setState(() => message = data["message"]);
+
+      final data = jsonDecode(res.body);
+
+      if (res.statusCode == 200) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomePage(
+              userId: data["user_id"],
+              isLeader: data["is_group_leader"],
+            ),
+          ),
+        );
+      } else {
+        setState(() {
+          message = data["message"] ?? "ログインに失敗しました";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        message = "通信エラーが発生しました";
+      });
     }
   }
 

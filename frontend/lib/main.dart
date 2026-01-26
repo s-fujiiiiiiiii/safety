@@ -36,72 +36,78 @@ class StartPage extends StatelessWidget {
           ),
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.verified_user_outlined,
-              size: 90,
-              color: Color(0xFF2E7D32),
-            ),
-            const SizedBox(height: 40),
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.verified_user_outlined,
+                size: 90,
+                color: Color(0xFF2E7D32),
+              ),
+              const SizedBox(height: 40),
 
-            // ログインボタン
-            SizedBox(
-              width: 260,
-              height: 52,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4CAF50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+              // ログインボタン
+              SizedBox(
+                width: 260,
+                height: 52,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CAF50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 3,
                   ),
-                  elevation: 3,
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginPage()),
-                  );
-                },
-                child: const Text(
-                  "ログイン",
-                  style: TextStyle(fontSize: 16),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const LoginPage(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    "ログイン",
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // 新規作成ボタン
-            SizedBox(
-              width: 260,
-              height: 52,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF4CAF50),
-                  side: const BorderSide(
-                    color: Color(0xFF4CAF50),
-                    width: 2,
+              // 新規作成ボタン
+              SizedBox(
+                width: 260,
+                height: 52,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF4CAF50),
+                    side: const BorderSide(
+                      color: Color(0xFF4CAF50),
+                      width: 2,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const RegisterPage(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    "新規作成",
+                    style: TextStyle(fontSize: 16),
                   ),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RegisterPage()),
-                  );
-                },
-                child: const Text(
-                  "新規作成",
-                  style: TextStyle(fontSize: 16),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

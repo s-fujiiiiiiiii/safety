@@ -14,20 +14,44 @@ class _RegisterPageState extends State<RegisterPage> {
   final passCtrl = TextEditingController();
   bool isLeader = false;
   String message = "";
+  bool loading = false;
 
   Future<void> register() async {
-    final res = await http.post(
-      Uri.parse("http://10.251.197.125:8000/api/create_user/"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "name": nameCtrl.text,
-        "password": passCtrl.text,
-        "is_group_leader": isLeader,
-      }),
-    );
+    if (nameCtrl.text.isEmpty || passCtrl.text.isEmpty) {
+      setState(() => message = "名前とパスワードを入力してください");
+      return;
+    }
 
-    final data = jsonDecode(res.body);
-    setState(() => message = data["message"]);
+    setState(() => loading = true);
+
+    try {
+      final res = await http.post(
+        Uri.parse("http://10.251.197.125:8000/api/create_user/"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "name": nameCtrl.text,
+          "password": passCtrl.text,
+          "is_group_leader": isLeader,
+        }),
+      );
+
+      final data = jsonDecode(res.body);
+
+      if (res.statusCode == 200) {
+        setState(() => message = data["message"] ?? "登録に成功しました");
+
+        // 少し待って前の画面へ
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) Navigator.pop(context);
+        });
+      } else {
+        setState(() => message = data["message"] ?? "登録に失敗しました");
+      }
+    } catch (e) {
+      setState(() => message = "通信エラーが発生しました");
+    } finally {
+      setState(() => loading = false);
+    }
   }
 
   @override
@@ -116,11 +140,15 @@ class _RegisterPageState extends State<RegisterPage> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    onPressed: register,
-                    child: const Text(
-                      "作成",
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    onPressed: loading ? null : register,
+                    child: loading
+                        ? const CircularProgressIndicator(
+                            color: Colors.white,
+                          )
+                        : const Text(
+                            "作成",
+                            style: TextStyle(fontSize: 16),
+                          ),
                   ),
                 ),
 
