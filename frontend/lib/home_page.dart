@@ -9,6 +9,7 @@ import 'group_list_page.dart';
 import 'group_join_page.dart';
 import 'map_screen.dart';
 import 'group_create_page.dart';
+import 'safety_register_test.dart';
 
 class HomePage extends StatelessWidget {
   final int userId;
@@ -91,6 +92,19 @@ class HomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => GroupJoinPage(userId: userId),
+                    ),
+                  );
+                },
+              ),
+
+              _menuCard(
+                icon: Icons.check_circle,
+                title: "安否登録",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SafetyRegisterTestPage(userId: userId),
                     ),
                   );
                 },

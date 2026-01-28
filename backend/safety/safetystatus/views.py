@@ -1,10 +1,8 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import get_user_model
+from accounts.models import SimpleUser
 from .models import SafetyStatus
 import json
-
-User = get_user_model()
 
 @csrf_exempt
 def register_status(request):
@@ -18,8 +16,8 @@ def register_status(request):
 
             #ユーザー取得
             try:
-                user = User.objects.get(id=user_id)
-            except User.DoesNotExist:
+                user = SimpleUser.objects.get(id=user_id)
+            except SimpleUser.DoesNotExist:
                 return JsonResponse({"error": "ユーザーが存在しません"}, status=400)
 
             #データ保存
