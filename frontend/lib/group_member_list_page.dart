@@ -39,6 +39,53 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
     fetchMembers();
   }
 
+  int? _extractUserId(dynamic member) {
+    if (member is! Map) return null;
+    final raw = member["id"];
+    if (raw is int) return raw;
+    return int.tryParse(raw?.toString() ?? "");
+  }
+
+  DateTime? _extractLatestCreatedAt(int userId) {
+    final latest = latestStatusByUserId[userId];
+    if (latest is! Map) return null;
+
+    final raw = latest["created_at"];
+    if (raw == null) return null;
+    if (raw is String) return DateTime.tryParse(raw);
+
+    // 念のため（型が想定と違う場合）
+    return DateTime.tryParse(raw.toString());
+  }
+
+  void _sortMembersByLatestStatusDesc() {
+    members.sort((a, b) {
+      final aId = _extractUserId(a);
+      final bId = _extractUserId(b);
+
+      final aAt = aId == null ? null : _extractLatestCreatedAt(aId);
+      final bAt = bId == null ? null : _extractLatestCreatedAt(bId);
+
+      // 未登録（null）は下へ
+      if (aAt == null && bAt == null) {
+        final aName = (a is Map ? a["name"] : "")?.toString() ?? "";
+        final bName = (b is Map ? b["name"] : "")?.toString() ?? "";
+        return aName.compareTo(bName);
+      }
+      if (aAt == null) return 1;
+      if (bAt == null) return -1;
+
+      // 新しい順（降順）
+      final cmp = bAt.compareTo(aAt);
+      if (cmp != 0) return cmp;
+
+      // 同時刻なら名前で安定化
+      final aName = (a is Map ? a["name"] : "")?.toString() ?? "";
+      final bName = (b is Map ? b["name"] : "")?.toString() ?? "";
+      return aName.compareTo(bName);
+    });
+  }
+
   Future<void> fetchLatestStatuses() async {
     if (members.isEmpty) return;
 
@@ -74,6 +121,7 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
         });
         setState(() {
           latestStatusByUserId = mapped;
+          _sortMembersByLatestStatusDesc();
           statusLoading = false;
         });
       } else {

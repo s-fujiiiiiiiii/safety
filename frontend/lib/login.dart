@@ -13,6 +13,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final nameCtrl = TextEditingController();
   final passCtrl = TextEditingController();
+  final FocusNode _passFocusNode = FocusNode();
   String message = "";
 
   bool _obscurePassword = true;
@@ -21,6 +22,7 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     nameCtrl.dispose();
     passCtrl.dispose();
+    _passFocusNode.dispose();
     super.dispose();
   }
 
@@ -96,6 +98,8 @@ class _LoginPageState extends State<LoginPage> {
                 // 名前
                 TextField(
                   controller: nameCtrl,
+                  textInputAction: TextInputAction.next,
+                  onSubmitted: (_) => _passFocusNode.requestFocus(),
                   decoration: InputDecoration(
                     labelText: "名前",
                     prefixIcon: const Icon(Icons.person_outline),
@@ -112,7 +116,10 @@ class _LoginPageState extends State<LoginPage> {
                 // パスワード
                 TextField(
                   controller: passCtrl,
+                  focusNode: _passFocusNode,
                   obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => login(),
                   decoration: InputDecoration(
                     labelText: "パスワード",
                     prefixIcon: const Icon(Icons.lock_outline),
