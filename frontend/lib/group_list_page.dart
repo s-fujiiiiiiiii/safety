@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
 import 'group_member_list_page.dart';
 import 'group_create_page.dart';
 import 'api_service.dart';
@@ -66,6 +68,33 @@ class _GroupListPageState extends State<GroupListPage> {
     );
   }
 
+  Future<void> _copyInviteCode(String inviteCode) async {
+    if (inviteCode.trim().isEmpty) {
+      _showError("招待コードがありません");
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: inviteCode));
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("招待コードをコピーしました")),
+    );
+  }
+
+  Future<void> _shareInviteCode({
+    required String inviteCode,
+    required String groupName,
+  }) async {
+    if (inviteCode.trim().isEmpty) {
+      _showError("招待コードがありません");
+      return;
+    }
+
+    // 「よくある共有」で十分とのことなので、短いテキストだけ共有
+    await Share.share("招待コード：$inviteCode");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,15 +139,15 @@ class _GroupListPageState extends State<GroupListPage> {
                     final g = groups[i];
 
                     return _groupCard(
-                      name: g["name"],
-                      inviteCode: g["invite_code"],
+                      name: (g["name"] ?? "").toString(),
+                      inviteCode: (g["invite_code"] ?? "").toString(),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => GroupMemberListPage(
                               groupId: g["id"],
-                              groupName: g["name"],
+                              groupName: (g["name"] ?? "").toString(),
                               loginUserId: widget.userId,
                               isLeader: widget.isLeader,
                             ),
@@ -173,12 +202,45 @@ class _GroupListPageState extends State<GroupListPage> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        "招待コード：$inviteCode",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              "招待コード：$inviteCode",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Tooltip(
+                            message: "コピー",
+                            child: IconButton(
+                              visualDensity: VisualDensity.compact,
+                              iconSize: 18,
+                              onPressed: () => _copyInviteCode(inviteCode),
+                              icon: Icon(
+                                Icons.copy,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                          Tooltip(
+                            message: "共有",
+                            child: IconButton(
+                              visualDensity: VisualDensity.compact,
+                              iconSize: 18,
+                              onPressed: () =>
+                                  _shareInviteCode(inviteCode: inviteCode, groupName: name),
+                              icon: Icon(
+                                Icons.share_outlined,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
