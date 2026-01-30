@@ -15,6 +15,8 @@ class _LoginPageState extends State<LoginPage> {
   final passCtrl = TextEditingController();
   String message = "";
 
+  bool _obscurePassword = true;
+
   @override
   void dispose() {
     nameCtrl.dispose();
@@ -110,10 +112,22 @@ class _LoginPageState extends State<LoginPage> {
                 // パスワード
                 TextField(
                   controller: passCtrl,
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: "パスワード",
                     prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                    ),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(

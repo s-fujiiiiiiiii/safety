@@ -16,6 +16,8 @@ class _RegisterPageState extends State<RegisterPage> {
   String message = "";
   bool loading = false;
 
+  bool _obscurePassword = true;
+
   Future<void> register() async {
     if (nameCtrl.text.isEmpty || passCtrl.text.isEmpty) {
       setState(() => message = "名前とパスワードを入力してください");
@@ -101,10 +103,22 @@ class _RegisterPageState extends State<RegisterPage> {
                 // パスワード
                 TextField(
                   controller: passCtrl,
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: "パスワード",
                     prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                    ),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
