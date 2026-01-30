@@ -26,6 +26,10 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
   bool loading = true;
   String errorMessage = "";
 
+  bool statusLoading = false;
+  String statusErrorMessage = "";
+  Map<int, dynamic> latestStatusByUserId = {};
+
   static const mainGreen = Color(0xFF2E7D32);
   static const lightGreen = Color(0xFFE8F5E9);
 
@@ -33,6 +37,57 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
   void initState() {
     super.initState();
     fetchMembers();
+  }
+
+  Future<void> fetchLatestStatuses() async {
+    if (members.isEmpty) return;
+
+    final userIds = <int>[];
+    for (final m in members) {
+      final id = m["id"];
+      if (id is int) {
+        userIds.add(id);
+      } else {
+        final parsed = int.tryParse(id?.toString() ?? "");
+        if (parsed != null) userIds.add(parsed);
+      }
+    }
+
+    if (userIds.isEmpty) return;
+
+    if (!mounted) return;
+    setState(() {
+      statusLoading = true;
+      statusErrorMessage = "";
+    });
+
+    final result = await ApiService.fetchLatestSafetyStatuses(userIds: userIds);
+    if (!mounted) return;
+
+    if (result["success"] == true) {
+      final data = result["data"];
+      if (data is Map) {
+        final mapped = <int, dynamic>{};
+        data.forEach((key, value) {
+          final uid = int.tryParse(key.toString());
+          if (uid != null) mapped[uid] = value;
+        });
+        setState(() {
+          latestStatusByUserId = mapped;
+          statusLoading = false;
+        });
+      } else {
+        setState(() {
+          statusLoading = false;
+          statusErrorMessage = "安否情報の取得に失敗しました";
+        });
+      }
+    } else {
+      setState(() {
+        statusLoading = false;
+        statusErrorMessage = result["error"]?.toString() ?? "安否情報の取得に失敗しました";
+      });
+    }
   }
 
   Future<void> fetchMembers() async {
@@ -60,6 +115,9 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
           members = decoded;
           loading = false;
         });
+
+        // メンバー取得後に、最新の安否情報もまとめて取得
+        await fetchLatestStatuses();
       } else {
         String serverMessage = "";
         try {
@@ -154,21 +212,53 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
               ? Center(child: Text(errorMessage))
               : members.isEmpty
                   ? _emptyView()
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(20),
-                      itemCount: members.length,
-                      itemBuilder: (context, i) {
-                        final m = members[i];
-                        final isLeaderUser = m["is_group_leader"];
-
-                        return _memberCard(
-                          name: m["name"],
-                          isLeaderUser: isLeaderUser,
-                          canDelete:
-                              widget.isLeader && m["id"] != widget.loginUserId,
-                          onDelete: () => removeMember(m["id"]),
-                        );
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        setState(() {
+                          loading = true;
+                          errorMessage = "";
+                        });
+                        await fetchMembers();
                       },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(20),
+                        itemCount: members.length + (statusErrorMessage.isNotEmpty ? 1 : 0),
+                        itemBuilder: (context, i) {
+                          if (statusErrorMessage.isNotEmpty && i == 0) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Text(
+                                "安否情報: $statusErrorMessage",
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            );
+                          }
+
+                          final index = statusErrorMessage.isNotEmpty ? i - 1 : i;
+                          final m = members[index];
+                          final isLeaderUser = m["is_group_leader"] == true;
+                          final userIdRaw = m["id"];
+                          final userId = (userIdRaw is int)
+                              ? userIdRaw
+                              : int.tryParse(userIdRaw?.toString() ?? "");
+
+                          final latest = (userId != null) ? latestStatusByUserId[userId] : null;
+                          final latestStatus = (latest is Map) ? latest["status"]?.toString() : null;
+                          final latestMemo = (latest is Map) ? latest["memo"]?.toString() : null;
+                          final latestCreatedAt = (latest is Map) ? latest["created_at"]?.toString() : null;
+
+                          return _memberCard(
+                            name: m["name"],
+                            isLeaderUser: isLeaderUser,
+                            canDelete: widget.isLeader && userId != null && userId != widget.loginUserId,
+                            onDelete: () => removeMember(userId ?? 0),
+                            safetyStatus: latestStatus,
+                            safetyMemo: latestMemo,
+                            safetyCreatedAt: latestCreatedAt,
+                            safetyLoading: statusLoading,
+                          );
+                        },
+                      ),
                     ),
     );
   }
@@ -179,7 +269,20 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
     required bool isLeaderUser,
     required bool canDelete,
     required VoidCallback onDelete,
+    required String? safetyStatus,
+    required String? safetyMemo,
+    required String? safetyCreatedAt,
+    required bool safetyLoading,
   }) {
+    final statusLabel = safetyLoading
+        ? "取得中..."
+        : (safetyStatus == null || safetyStatus.isEmpty)
+            ? "未登録"
+            : safetyStatus;
+
+    final memoText = (safetyMemo ?? "").trim();
+    final timeText = (safetyCreatedAt ?? "").trim();
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Card(
@@ -212,6 +315,41 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "安否：$statusLabel",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: safetyLoading
+                            ? Colors.grey.shade600
+                            : (statusLabel == "未登録" ? Colors.grey.shade700 : mainGreen),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (memoText.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          memoText,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade700,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    if (timeText.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          "更新: $timeText",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
                     if (isLeaderUser)
                       const Padding(
                         padding: EdgeInsets.only(top: 4),
