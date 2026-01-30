@@ -33,6 +33,9 @@ class _LoginPageState extends State<LoginPage> {
         }),
       );
 
+      // 🔽 ここが超重要（画面が生きてるか確認）
+      if (!mounted) return;
+
       final data = jsonDecode(res.body);
 
       if (res.statusCode == 200) {
@@ -51,6 +54,9 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
     } catch (e) {
+      // 🔽 catch の中でも mounted チェック
+      if (!mounted) return;
+
       setState(() {
         message = "通信エラーが発生しました";
       });

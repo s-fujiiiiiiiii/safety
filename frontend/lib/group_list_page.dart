@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'group_member_list_page.dart';
 import 'group_create_page.dart';
+import 'api_service.dart';
 
 class GroupListPage extends StatefulWidget {
   final int userId;
@@ -32,18 +33,37 @@ class _GroupListPageState extends State<GroupListPage> {
   }
 
   Future<void> fetchGroups() async {
-    final res = await http.get(
-      Uri.parse(
-        "http://10.251.197.125:8000/api/group_list/?user_id=${widget.userId}",
-      ),
-    );
+    try {
+      final res = await http
+          .get(
+            Uri.parse(
+              "${ApiService.baseUrl}/api/group_list/?user_id=${widget.userId}",
+            ),
+          )
+          .timeout(const Duration(seconds: 5));
 
-    if (res.statusCode == 200) {
-      setState(() {
-        groups = jsonDecode(res.body);
-        loading = false;
-      });
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        setState(() {
+          groups = jsonDecode(res.body);
+          loading = false;
+        });
+      } else {
+        setState(() => loading = false);
+        _showError("グループ一覧の取得に失敗しました");
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => loading = false);
+      _showError("通信エラーが発生しました");
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -56,7 +76,7 @@ class _GroupListPageState extends State<GroupListPage> {
         foregroundColor: Colors.white,
       ),
 
-      // リーダーのみ
+      /// リーダーのみ表示
       floatingActionButton: widget.isLeader
           ? FloatingActionButton(
               backgroundColor: mainGreen,
@@ -67,7 +87,12 @@ class _GroupListPageState extends State<GroupListPage> {
                   MaterialPageRoute(
                     builder: (_) => GroupCreatePage(userId: widget.userId),
                   ),
-                );
+                ).then((_) {
+                  setState(() {
+                    loading = true;
+                  });
+                  fetchGroups();
+                });
               },
             )
           : null,

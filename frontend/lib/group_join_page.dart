@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'api_service.dart';
 
 class GroupJoinPage extends StatefulWidget {
   final int userId;
@@ -18,17 +19,23 @@ class _GroupJoinPageState extends State<GroupJoinPage> {
   static const lightGreen = Color(0xFFE8F5E9);
 
   Future<void> joinGroup() async {
-    final res = await http.post(
-      Uri.parse("http://10.251.197.125:8000/api/join_group/"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "user_id": widget.userId,
-        "invite_code": ctrl.text,
-      }),
-    );
+    try {
+      final res = await http
+          .post(
+            Uri.parse("${ApiService.baseUrl}/api/join_group/"),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "user_id": widget.userId,
+              "invite_code": ctrl.text,
+            }),
+          )
+          .timeout(const Duration(seconds: 8));
 
-    final data = jsonDecode(res.body);
-    setState(() => message = data["message"]);
+      final data = jsonDecode(res.body);
+      setState(() => message = data["message"] ?? "参加に失敗しました");
+    } catch (e) {
+      setState(() => message = "通信エラーが発生しました");
+    }
   }
 
   @override

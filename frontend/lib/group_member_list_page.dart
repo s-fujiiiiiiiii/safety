@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'api_service.dart';
 
 class GroupMemberListPage extends StatefulWidget {
   final int groupId;
@@ -23,6 +24,7 @@ class GroupMemberListPage extends StatefulWidget {
 class _GroupMemberListPageState extends State<GroupMemberListPage> {
   List members = [];
   bool loading = true;
+  String errorMessage = "";
 
   static const mainGreen = Color(0xFF2E7D32);
   static const lightGreen = Color(0xFFE8F5E9);
@@ -34,16 +36,50 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
   }
 
   Future<void> fetchMembers() async {
-    final res = await http.get(
-      Uri.parse(
-        "http://10.251.197.125:8000/api/group_members/?group_id=${widget.groupId}",
-      ),
-    );
+    try {
+      final res = await http
+          .get(
+            Uri.parse(
+              "${ApiService.baseUrl}/api/group_members/?group_id=${widget.groupId}",
+            ),
+          )
+          .timeout(const Duration(seconds: 8));
 
-    if (res.statusCode == 200) {
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
+        if (decoded is! List) {
+          setState(() {
+            loading = false;
+            errorMessage = "メンバー取得に失敗しました（不正なレスポンス）";
+          });
+          return;
+        }
+        setState(() {
+          members = decoded;
+          loading = false;
+        });
+      } else {
+        String serverMessage = "";
+        try {
+          final data = jsonDecode(res.body);
+          if (data is Map && data["message"] is String) {
+            serverMessage = data["message"] as String;
+          }
+        } catch (_) {}
+        setState(() {
+          loading = false;
+          errorMessage = serverMessage.isNotEmpty
+              ? serverMessage
+              : "メンバー取得に失敗しました（${res.statusCode}）";
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
       setState(() {
-        members = jsonDecode(res.body);
         loading = false;
+        errorMessage = "通信エラーが発生しました";
       });
     }
   }
@@ -60,9 +96,7 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
             child: const Text("キャンセル"),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(context, true),
             child: const Text("削除"),
           ),
@@ -72,24 +106,33 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
 
     if (ok != true) return;
 
-    final res = await http.post(
-      Uri.parse("http://10.251.197.125:8000/api/remove_group_member/"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "leader_id": widget.loginUserId,
-        "group_id": widget.groupId,
-        "target_user_id": targetUserId,
-      }),
-    );
+    try {
+      final res = await http.post(
+        Uri.parse("${ApiService.baseUrl}/api/remove_group_member/"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "leader_id": widget.loginUserId,
+          "group_id": widget.groupId,
+          "target_user_id": targetUserId,
+        }),
+      ).timeout(const Duration(seconds: 8));
 
-    if (res.statusCode == 200) {
-      fetchMembers();
-    } else {
-      final data = jsonDecode(res.body);
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        fetchMembers();
+      } else {
+        final data = jsonDecode(res.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data["message"] ?? "削除に失敗しました"),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(data["message"] ?? "削除に失敗しました"),
-        ),
+        const SnackBar(content: Text("通信エラーが発生しました")),
       );
     }
   }
@@ -107,24 +150,26 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
           ? const Center(
               child: CircularProgressIndicator(color: mainGreen),
             )
-          : members.isEmpty
-              ? _emptyView()
-              : ListView.builder(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: members.length,
-                  itemBuilder: (context, i) {
-                    final m = members[i];
-                    final isLeaderUser = m["is_group_leader"];
+          : errorMessage.isNotEmpty
+              ? Center(child: Text(errorMessage))
+              : members.isEmpty
+                  ? _emptyView()
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: members.length,
+                      itemBuilder: (context, i) {
+                        final m = members[i];
+                        final isLeaderUser = m["is_group_leader"];
 
-                    return _memberCard(
-                      name: m["name"],
-                      isLeaderUser: isLeaderUser,
-                      canDelete:
-                          widget.isLeader && m["id"] != widget.loginUserId,
-                      onDelete: () => removeMember(m["id"]),
-                    );
-                  },
-                ),
+                        return _memberCard(
+                          name: m["name"],
+                          isLeaderUser: isLeaderUser,
+                          canDelete:
+                              widget.isLeader && m["id"] != widget.loginUserId,
+                          onDelete: () => removeMember(m["id"]),
+                        );
+                      },
+                    ),
     );
   }
 
