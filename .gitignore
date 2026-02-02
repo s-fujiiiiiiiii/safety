@@ -21,12 +21,12 @@ settings_local.py
 # ========================================
 venv/
 env/
-Lib/
-Include/
-Scripts/
-pyvenv.cfg
-pip-log.txt
-pip-delete-this-directory.txt
+/Lib/
+/Include/
+/Scripts/
+/pyvenv.cfg
+/pip-log.txt
+/pip-delete-this-directory.txt
 
 # ========================================
 # ===== Flutter / Frontend =====
