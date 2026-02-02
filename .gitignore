@@ -1,6 +1,6 @@
 # ===== Flutter =====
 frontend/flutter/
-build/
+frontend/**/build/
 .dart_tool/
 .packages
 
