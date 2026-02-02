@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from safetyapp.views import HomeView 
+from safetyapp.views import HomeView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
