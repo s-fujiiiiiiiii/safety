@@ -25,8 +25,8 @@ SECRET_KEY = 'django-insecure-&qbouw^74uc2i9e_rp)m^j8#iy@ruvvb4k2)3m^hx@v0d8ec$t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.251.197.125', '127.0.0.1', 'localhost']
-
+# ALLOWED_HOSTS = ['10.251.197.125', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -40,9 +40,9 @@ INSTALLED_APPS = [
     'safetyapp.apps.SafetyappConfig',
     'accounts',
     'safetystatus',
-    
     'rest_framework',
     'sns_analyzer',
+    'shelters',
 ]
 
 MIDDLEWARE = [

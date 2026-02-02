@@ -8,5 +8,6 @@ urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path('safetystatus/', include('safetystatus.urls')),
     path('api/sns/', include('sns_analyzer.urls')),
+    path('api/shelters/', include('shelters.urls')),
     path('api/', include('accounts.urls')),
 ]
