@@ -33,18 +33,18 @@ class _GroupMemberListPageState extends State<GroupMemberListPage> {
   static const mainGreen = Color(0xFF2E7D32);
   static const lightGreen = Color(0xFFE8F5E9);
 
-  @override
-  void initState() {
-    super.initState();
-    fetchMembers();
-  }
+@override
+void initState() {
+  super.initState();
+  fetchMembers();
+}
 
-  int? _extractUserId(dynamic member) {
-    if (member is! Map) return null;
-    final raw = member["id"];
-    if (raw is int) return raw;
-    return int.tryParse(raw?.toString() ?? "");
-  }
+int? _extractUserId(dynamic member) {
+  if (member is! Map) return null;
+  final raw = member["id"];
+  if (raw is int) return raw;
+  return int.tryParse(raw?.toString() ?? "");
+}
 
   DateTime? _extractLatestCreatedAt(int userId) {
     final latest = latestStatusByUserId[userId];
