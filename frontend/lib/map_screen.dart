@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 
-import 'config_env.dart';
+import 'shelters_api.dart';
 import 'shelter.dart';
 
 class MapScreen extends StatefulWidget {
@@ -21,6 +18,7 @@ class _MapScreenState extends State<MapScreen> {
   LatLng? _currentLatLng;
 
   final Set<Marker> _markers = {};
+  List<Shelter> _shelters = [];
 
   @override
   void initState() {
@@ -47,59 +45,49 @@ class _MapScreenState extends State<MapScreen> {
       desiredAccuracy: LocationAccuracy.high,
     );
 
-    _currentLatLng = LatLng(pos.latitude, pos.longitude);
-
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('me'),
-        position: _currentLatLng!,
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueRed,
-        ),
-        infoWindow: const InfoWindow(title: '現在地'),
-      ),
-    );
-
-    setState(() {});
-
-    if (_controller != null) {
-      _controller!.animateCamera(
-        CameraUpdate.newLatLngZoom(_currentLatLng!, 15),
-      );
-    }
+    setState(() {
+      _currentLatLng = LatLng(pos.latitude, pos.longitude);
+    });
   }
 
   // =========================
-  // 避難所取得
+  // 避難所取得（全件）
   // =========================
   Future<void> _fetchShelters() async {
     try {
-      final res = await http.get(
-        Uri.parse('${Env.apiBaseUrl}/api/shelters/'),
-      );
+      debugPrint('📡 shelters API 呼び出し開始');
 
-      if (res.statusCode != 200) return;
+      final shelters = await fetchNearbyShelters();
 
-      final List list = json.decode(res.body);
+      debugPrint('📦 shelters 件数: ${shelters.length}');
 
-      for (final e in list) {
-        final shelter = Shelter.fromJson(e);
+      final Set<Marker> newMarkers = {};
 
-        _markers.add(
+      for (final shelter in shelters) {
+        newMarkers.add(
           Marker(
             markerId: MarkerId('shelter_${shelter.id}'),
-            position: LatLng(shelter.lat, shelter.lng),
+            position: LatLng(
+              shelter.latitude,
+              shelter.longitude,
+            ),
             icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueBlue,
+              BitmapDescriptor.hueRed,
             ),
             infoWindow: InfoWindow(
               title: shelter.name,
+              snippet: shelter.address,
             ),
           ),
         );
       }
 
-      setState(() {});
+      setState(() {
+        _shelters = shelters;
+        _markers
+          ..clear()
+          ..addAll(newMarkers);
+      });
     } catch (e) {
       debugPrint('❌ shelter error: $e');
     }
@@ -117,21 +105,73 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     return Scaffold(
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: _currentLatLng!,
-          zoom: 15,
-        ),
-        markers: _markers,
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
-        onMapCreated: (controller) {
-          _controller = controller;
+      appBar: AppBar(
+        title: const Text('避難所マップ'),
+        backgroundColor: Colors.green,
+      ),
+      body: Stack(
+        children: [
+          // ===== GoogleMap =====
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _currentLatLng!,
+              zoom: 14,
+            ),
+            markers: _markers,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            onMapCreated: (controller) {
+              _controller = controller;
+              controller.animateCamera(
+                CameraUpdate.newLatLngZoom(_currentLatLng!, 14),
+              );
+            },
+          ),
 
-          _controller!.animateCamera(
-            CameraUpdate.newLatLngZoom(_currentLatLng!, 15),
-          );
-        },
+          // ===== 下の避難所リスト =====
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              height: 220,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+              ),
+              child: _shelters.isEmpty
+                  ? const Center(
+                      child: Text('近くに避難所がありません'),
+                    )
+                  : ListView.builder(
+                      itemCount: _shelters.length,
+                      itemBuilder: (context, index) {
+                        final shelter = _shelters[index];
+
+                        return ListTile(
+                          leading: const Icon(
+                            Icons.location_on,
+                            color: Colors.red,
+                          ),
+                          title: Text(shelter.name),
+                          subtitle: Text(shelter.address ?? ''),
+                          onTap: () {
+                            _controller?.animateCamera(
+                              CameraUpdate.newLatLngZoom(
+                                LatLng(
+                                  shelter.latitude,
+                                  shelter.longitude,
+                                ),
+                                16,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }

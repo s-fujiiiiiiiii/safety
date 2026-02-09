@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'home_page.dart';
+import 'config_env.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -25,47 +26,57 @@ class _LoginPageState extends State<LoginPage> {
     _passFocusNode.dispose();
     super.dispose();
   }
+Future<void> login() async {
+  debugPrint("🔥 login() START");
+  debugPrint("👤 name='${nameCtrl.text}'");
+  debugPrint("🔑 pass='${passCtrl.text}'");
+  debugPrint("🔍 API Base URL: ${Env.apiBaseUrl}");
 
-  Future<void> login() async {
-    try {
-      final res = await http.post(
-        Uri.parse("http://10.251.197.126:8000/api/login/"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "name": nameCtrl.text,
-          "password": passCtrl.text,
-        }),
-      );
+  try {
+    debugPrint("🚀 POST送信開始");
+    final res = await http.post(
+      Uri.parse("${Env.apiBaseUrl}/api/login/"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "name": nameCtrl.text,
+        "password": passCtrl.text,
+      }),
+    );
 
-      // 🔽 ここが超重要（画面が生きてるか確認）
-      if (!mounted) return;
+    debugPrint("✅ POST完了");
+    debugPrint("📡 statusCode: ${res.statusCode}");
+    debugPrint("📦 response body: ${res.body}");
 
-      final data = jsonDecode(res.body);
+    if (!mounted) return;
 
-      if (res.statusCode == 200) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => HomePage(
-              userId: data["user_id"],
-              isLeader: data["is_group_leader"],
-            ),
+    final data = jsonDecode(res.body);
+
+    if (res.statusCode == 200) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HomePage(
+            userId: data["user_id"],
+            isLeader: data["is_group_leader"],
           ),
-        );
-      } else {
-        setState(() {
-          message = data["message"] ?? "ログインに失敗しました";
-        });
-      }
-    } catch (e) {
-      // 🔽 catch の中でも mounted チェック
-      if (!mounted) return;
-
+        ),
+      );
+    } else {
       setState(() {
-        message = "通信エラーが発生しました";
+        message = data["message"] ?? "ログインに失敗しました";
       });
     }
+  } catch (e) {
+    debugPrint("❌ LOGIN ERROR: $e");
+
+    if (!mounted) return;
+
+    setState(() {
+      message = "通信エラーが発生しました";
+    });
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

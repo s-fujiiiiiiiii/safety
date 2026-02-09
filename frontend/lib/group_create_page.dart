@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'config_env.dart';
 
 
 class GroupCreatePage extends StatefulWidget {
@@ -33,7 +34,7 @@ class _GroupCreatePageState extends State<GroupCreatePage> {
     try {
       final res = await http
           .post(
-            Uri.parse("http://10.251.197.126:8000/api/create_group/"),
+            Uri.parse("${Env.apiBaseUrl}/api/create_group/"),
             headers: {"Content-Type": "application/json"},
             body: jsonEncode({
               "user_id": widget.userId,

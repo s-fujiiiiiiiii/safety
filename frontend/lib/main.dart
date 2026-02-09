@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'register.dart';
-import 'safety_register_test.dart';
 
 
 void main() {

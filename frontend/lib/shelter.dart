@@ -1,22 +1,25 @@
 class Shelter {
   final int id;
   final String name;
-  final double lat;
-  final double lng;
+  final double latitude;
+  final double longitude;
+  final String address;
 
   Shelter({
     required this.id,
     required this.name,
-    required this.lat,
-    required this.lng,
+    required this.latitude,
+    required this.longitude,
+    required this.address,
   });
 
   factory Shelter.fromJson(Map<String, dynamic> json) {
     return Shelter(
       id: json['id'],
       name: json['name'],
-      lat: json['lat'].toDouble(),
-      lng: json['lng'].toDouble(),
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      address: json['address'] ?? '',
     );
   }
 }

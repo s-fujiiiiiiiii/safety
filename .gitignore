@@ -25,3 +25,6 @@ Thumbs.db
 
 # ===== Logs =====
 *.log
+
+# Android
+android/local.properties
