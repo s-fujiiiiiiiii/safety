@@ -4,11 +4,19 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${GOOGLE_MAPS_API_KEY}"
              />
+        <meta-data
+            android:name="com.google.android.gms.maps.MAP_ID"
+            android:value="475bc371cbf742028c2b3ae2" />
+        
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
+
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

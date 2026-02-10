@@ -3,7 +3,11 @@ import 'dart:convert';
 import 'dart:async';
 
 class ApiService {
-  static const String baseUrl = "http://10.251.197.126:8000";
+  static const String baseUrl =
+      String.fromEnvironment(
+        'API_BASE_URL',
+        defaultValue: 'http://10.251.197.126:8000',
+      );
 
   /// 安否状況を登録する
   static Future<Map<String, dynamic>> registerSafetyStatus({
