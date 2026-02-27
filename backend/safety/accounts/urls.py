@@ -7,6 +7,7 @@ from .views import (
     GroupListView,
     GroupMemberListView,
     RemoveGroupMemberView,
+    DeleteGroupView,
 )
 
 urlpatterns = [
@@ -18,4 +19,5 @@ urlpatterns = [
     path("group_list/", GroupListView.as_view()),
     path("group_members/", GroupMemberListView.as_view()),
     path("remove_group_member/", RemoveGroupMemberView.as_view()),
+    path("delete_group/", DeleteGroupView.as_view(), name="delete_group"),
 ]

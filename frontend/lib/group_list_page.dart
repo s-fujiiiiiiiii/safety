@@ -62,6 +62,34 @@ class _GroupListPageState extends State<GroupListPage> {
     }
   }
 
+  // ✅ 修正済み削除処理
+  Future<void> _deleteGroup(int groupId) async {
+    try {
+      final res = await http.post(
+        Uri.parse("${ApiService.baseUrl}/api/delete_group/"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "leader_id": widget.userId,
+          "group_id": groupId,
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        fetchGroups();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("グループを削除しました")),
+        );
+      } else {
+        _showError("削除に失敗しました");
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showError("通信エラーが発生しました");
+    }
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -91,7 +119,6 @@ class _GroupListPageState extends State<GroupListPage> {
       return;
     }
 
-    // 「よくある共有」で十分とのことなので、短いテキストだけ共有
     await Share.share("招待コード：$inviteCode");
   }
 
@@ -104,8 +131,6 @@ class _GroupListPageState extends State<GroupListPage> {
         backgroundColor: mainGreen,
         foregroundColor: Colors.white,
       ),
-
-      /// リーダーのみ表示
       floatingActionButton: widget.isLeader
           ? FloatingActionButton(
               backgroundColor: mainGreen,
@@ -114,7 +139,8 @@ class _GroupListPageState extends State<GroupListPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => GroupCreatePage(userId: widget.userId),
+                    builder: (_) =>
+                        GroupCreatePage(userId: widget.userId),
                   ),
                 ).then((_) {
                   setState(() {
@@ -125,7 +151,6 @@ class _GroupListPageState extends State<GroupListPage> {
               },
             )
           : null,
-
       body: loading
           ? const Center(
               child: CircularProgressIndicator(color: mainGreen),
@@ -139,6 +164,7 @@ class _GroupListPageState extends State<GroupListPage> {
                     final g = groups[i];
 
                     return _groupCard(
+                      groupId: g["id"],
                       name: (g["name"] ?? "").toString(),
                       inviteCode: (g["invite_code"] ?? "").toString(),
                       onTap: () {
@@ -160,8 +186,8 @@ class _GroupListPageState extends State<GroupListPage> {
     );
   }
 
-  // ===== グループカード =====
   Widget _groupCard({
+    required int groupId,
     required String name,
     required String inviteCode,
     required VoidCallback onTap,
@@ -215,29 +241,25 @@ class _GroupListPageState extends State<GroupListPage> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Tooltip(
-                            message: "コピー",
-                            child: IconButton(
-                              visualDensity: VisualDensity.compact,
-                              iconSize: 18,
-                              onPressed: () => _copyInviteCode(inviteCode),
-                              icon: Icon(
-                                Icons.copy,
-                                color: Colors.grey.shade700,
-                              ),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            iconSize: 18,
+                            onPressed: () => _copyInviteCode(inviteCode),
+                            icon: Icon(
+                              Icons.copy,
+                              color: Colors.grey.shade700,
                             ),
                           ),
-                          Tooltip(
-                            message: "共有",
-                            child: IconButton(
-                              visualDensity: VisualDensity.compact,
-                              iconSize: 18,
-                              onPressed: () =>
-                                  _shareInviteCode(inviteCode: inviteCode, groupName: name),
-                              icon: Icon(
-                                Icons.share_outlined,
-                                color: Colors.grey.shade700,
-                              ),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            iconSize: 18,
+                            onPressed: () => _shareInviteCode(
+                              inviteCode: inviteCode,
+                              groupName: name,
+                            ),
+                            icon: Icon(
+                              Icons.share_outlined,
+                              color: Colors.grey.shade700,
                             ),
                           ),
                         ],
@@ -245,7 +267,20 @@ class _GroupListPageState extends State<GroupListPage> {
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.isLeader)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                        ),
+                        onPressed: () => _deleteGroup(groupId),
+                      ),
+                    const Icon(Icons.chevron_right),
+                  ],
+                ),
               ],
             ),
           ),
@@ -254,7 +289,6 @@ class _GroupListPageState extends State<GroupListPage> {
     );
   }
 
-  // ===== 空状態 =====
   Widget _emptyView() {
     return Center(
       child: Column(

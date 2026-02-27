@@ -181,3 +181,20 @@ class RemoveGroupMemberView(APIView):
         target.groups.remove(group)
 
         return Response({"message": "削除しました"})
+
+class DeleteGroupView(APIView):
+    def post(self, request):
+        leader_id = request.data.get("leader_id")
+        group_id = request.data.get("group_id")
+
+        try:
+            leader = SimpleUser.objects.get(id=leader_id)
+            group = Group.objects.get(id=group_id)
+        except:
+            return Response({"message": "データが存在しません"}, status=404)
+
+        if not leader.is_group_leader:
+            return Response({"message": "権限なし"}, status=403)
+
+        group.delete()
+        return Response({"message": "削除成功"}, status=200)
